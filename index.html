@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>COLD CASE</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05070a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:Georgia,'Times New Roman',serif;background:#05070a;color:#c9d1d9;min-height:100vh;display:flex;flex-direction:column}
+h1{font-family:'Courier New',monospace;font-size:21px;letter-spacing:4px;color:#e5e9ee;text-align:center;padding:calc(env(safe-area-inset-top) + 16px) 0 2px;animation:flick 7s infinite}
+@keyframes flick{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.5}94%{opacity:1}96%{opacity:.7}97%{opacity:1}}
+.sub{text-align:center;font-size:11px;letter-spacing:2px;color:#6b7684;font-family:'Courier New',monospace;margin-bottom:8px}
+nav{display:flex;border-top:1px solid #141b24;border-bottom:1px solid #141b24}
+nav button{flex:1;background:none;border:none;border-right:1px solid #141b24;color:#6b7684;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;padding:11px 0}
+nav button:last-child{border-right:none}
+nav button.on{color:#d64545;background:#0a0e14}
+main{flex:1;overflow-y:auto;padding:16px 16px 30px;max-width:520px;width:100%;margin:0 auto}
+.casehead{font-family:'Courier New',monospace;color:#d64545;font-size:13px;letter-spacing:2px;margin-bottom:10px}
+.brief{font-size:15.5px;line-height:1.65;color:#dde3ea}
+.brief em{color:#8b98a9;font-style:normal}
+.mood{margin-top:14px;font-style:italic;color:#7b8899;font-size:14px}
+.ev{background:#0a0e14;border:1px solid #161e29;border-radius:4px;margin-bottom:8px}
+.ev button{width:100%;text-align:left;background:none;border:none;color:#c9d1d9;font-family:'Courier New',monospace;font-size:13px;letter-spacing:1px;padding:13px 14px;display:flex;justify-content:space-between}
+.ev .body{display:none;padding:0 14px 13px;font-size:14.5px;line-height:1.6;color:#aab4bf}
+.ev.open .body{display:block;animation:fade .6s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.ev .tag{color:#5a6678;font-size:10px}
+.ev.open .tag{color:#d64545}
+.sus{background:#0a0e14;border:1px solid #161e29;border-radius:4px;margin-bottom:10px;padding:13px 14px}
+.sus .nm{font-family:'Courier New',monospace;letter-spacing:1px;font-size:14px;color:#e5e9ee}
+.sus .role{font-size:12px;color:#6b7684;font-style:italic;margin-bottom:7px}
+.sus .alibi{font-size:14.5px;line-height:1.6;color:#aab4bf}
+.sus .press{margin-top:9px;background:none;border:1px solid #2a3648;color:#8b98a9;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;padding:7px 12px;border-radius:3px}
+.sus .crack{display:none;margin-top:9px;font-size:14px;line-height:1.6;color:#d64545}
+.sus.open .crack{display:block;animation:fade .6s}
+.sus.open .press{display:none}
+.acc{display:block;width:100%;background:#0a0e14;border:1px solid #2a3648;color:#e5e9ee;font-family:'Courier New',monospace;font-size:14px;letter-spacing:1px;padding:15px;margin-bottom:9px;border-radius:4px;text-align:left}
+.acc:active{border-color:#d64545}
+#overlay{display:none;position:fixed;inset:0;background:rgba(3,5,8,.96);z-index:10;padding:24px;overflow-y:auto}
+#overlay .inner{max-width:480px;margin:10vh auto 0}
+#overlay h2{font-family:'Courier New',monospace;letter-spacing:3px;font-size:18px;margin-bottom:14px}
+#overlay .txt{font-size:15.5px;line-height:1.7;color:#aab4bf;white-space:pre-line}
+#overlay .close{margin-top:18px;background:none;border:1px solid #d64545;color:#d64545;font-family:'Courier New',monospace;letter-spacing:2px;font-size:12px;padding:11px 22px;border-radius:3px}
+footer{padding:10px 16px calc(env(safe-area-inset-bottom) + 12px);border-top:1px solid #141b24;display:flex;justify-content:space-between;font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.5px;color:#6b7684}
+footer b{color:#c9d1d9}
+</style>
+</head>
+<body>
+<h1>COLD CASE</h1>
+<div class="sub" id="caseNo"></div>
+<nav>
+  <button data-t="brief" class="on">CASE</button>
+  <button data-t="scene">SCENE</button>
+  <button data-t="suspects">SUSPECTS</button>
+  <button data-t="accuse">ACCUSE</button>
+</nav>
+<main id="main"></main>
+<footer><span>CLEARED <b id="fSolved">0</b></span><span>STREAK <b id="fStreak">0</b></span><span>UNSOLVED <b id="fMissed">0</b></span></footer>
+<div id="overlay"><div class="inner"><h2 id="ovTitle"></h2><div class="txt" id="ovTxt"></div><button class="close" id="ovBtn"></button></div></div>
+<script>
+const FIRST=["Marlene","Ray","Dolores","Curtis","Imogen","Silas","Nadia","Otis","Pearl","Dennis","Vera","Hollis","June","Marcus","Elaine","Roy","Tabitha","Glen","Rosa","Amos","Wilma","Deacon","Lena","Clyde"];
+const LAST=["Hollan","Pruitt","Crane","Messer","Voss","Tandy","Boone","Whitlock","Graves","Mercer","Lund","Petty","Doyle","Kessler","Rook","Nash","Fenn","Aldridge","Cobb","Harlow"];
+const ROLES=["the victim's business partner","a former county deputy","the neighbor who keeps to himself","the victim's landlord","an old flame from years back","the night janitor at the plant","a cousin passing through town","the last person to see them alive","a door-to-door salesman with no route"];
+const LOCS=["the flooded motel off Route 9","the old cannery on the river","Marrow Woods","the county fairground after closing","the trailer park by the levee","the defunct drive-in","the church basement on Ash Street","the grain silos","the boarded sanatorium","the last house on Dunmore Road","the rail yard at Mile 12"];
+const TIMES=["11:40 pm","just past midnight","the small hours","3 am","dusk","the hour before dawn"];
+const PLACES=["the diner on Route 9","the truck stop","Kessler's Liquor","the laundromat","the county fair","the pawn shop"];
+const SURFS=["mud","ash","wet carpet","rain-soaked gravel","old snow"];
+const COLORS=["gray","rust-red","dark green","coal black"];
+const JWORDS=["it was never an accident","they watch the house","i should have moved sooner","the phone rings at night, nobody speaks"];
+const TOWERS=["county line","river road","fairground"];
+const ALIBIS=["Claims to have been at the diner on Route 9 from open to close.","Says they were home alone, asleep by ten.","Was in county lockup overnight on an old warrant. The desk sergeant confirms it.","Claims to have been at a card game until two.","Says they sat with their mother at the hospital all night.","Claims the truck would not start and they never left the yard."];
+const MOODS=["The rain has not stopped since you arrived.","Nobody here will look you in the eye.","The porch light has been on for three days.","Something in this town is holding its breath.","The dogs started up at dusk and have not quit."];
+const INNOCENT_PRESS=["They mention the victim called them three times the week before. Scared, they say. Of what, they never learned.","They hand you a photograph from the good years. Everyone smiling. Everyone alive.","They talk too long, too fast. Fear, not guilt. Their hands shake the whole time.","They ask you, quietly, whether it could happen again.","They tell you about the argument last spring. Money. It ended in silence and it never came back up."];
+const KINDS={
+ murder:{brief:"was found dead",tail:"The county wants a name. So does the family."},
+ vanished:{brief:"has not been seen since Thursday",tail:"No body. No note. The county wants a name anyway."},
+ arson:{brief:"watched their life burn to the foundation",tail:"The fire marshal says accelerant. The county wants a name."}
+};
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pick(r,arr){return arr[Math.floor(r()*arr.length)]}
+function shuffle(r,arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+let meta;
+try{meta=JSON.parse(localStorage.getItem("coldcase-v1"))||{}}catch(e){meta={}}
+meta.no=meta.no||1;meta.solved=meta.solved||0;meta.streak=meta.streak||0;meta.missed=meta.missed||0;
+let C,tab="brief";
+function genCase(no){
+  const r=rng(no*2654435761+1013904223);
+  const kind=pick(r,Object.keys(KINDS));
+  const loc=pick(r,LOCS), time=pick(r,TIMES);
+  const vn=pick(r,FIRST)+" "+pick(r,LAST);
+  const names=[];while(names.length<3){const n=pick(r,FIRST)+" "+pick(r,LAST);if(n!==vn&&names.indexOf(n)<0)names.push(n)}
+  const roles=shuffle(r,ROLES).slice(0,3);
+  const alibis=shuffle(r,ALIBIS).slice(0,3);
+  const culprit=names[0];
+  const size=9+Math.floor(r()*5);
+  const color=pick(r,COLORS), surf=pick(r,SURFS), place=pick(r,PLACES), jw=pick(r,JWORDS), tw=pick(r,TOWERS);
+  const culptPool=shuffle(r,[
+    {name:"deep boot print",text:"A boot print pressed deep into the "+surf+", size "+size+". "+culprit+" wears a size "+size+".",press:"they change their story about which boots they wore that night."},
+    {name:"dated receipt",text:"A receipt from "+place+", timestamped "+time+". That is exactly when "+culprit+" claims to have been home asleep.",press:"they first deny being near "+place+" that hour, then admit it."},
+    {name:"the victim's journal",text:"In the victim's journal, "+culprit+"'s name underlined twice, beside the words '"+jw+"'.",press:"they did not know the victim kept a journal. Their face says they knew the words."},
+    {name:"wool fibers",text:"Fibers on the victim: "+color+" wool. "+culprit+"'s coat is the same "+color+" wool.",press:"they claim the coat was ruined and thrown away. It is hanging in their closet."},
+    {name:"cell ping",text:"A cell ping off the "+tw+" tower at "+time+". "+culprit+"'s phone, though "+culprit+" swore it had been dead for days.",press:"they now say the phone was borrowed. By whom, they cannot say."}
+  ]).slice(0,3);
+  const inno1=names[1], inno2=names[2];
+  const herrings=shuffle(r,[
+    {name:"torn photograph",text:"A torn photograph of "+inno1+" outside the scene. Dated years before the crime. Someone kept it a long time."},
+    {name:"fingerprints",text:inno2+"'s fingerprints on the handle. "+inno2+" says they visited the day before, and the dust says they are right."},
+    {name:"threatening note",text:"A threatening note aimed at "+inno1+", signed with initials that match the victim's own handwriting."}
+  ]).slice(0,2);
+  const eeries=shuffle(r,[
+    {name:"stopped clocks",text:"Every clock at the scene stopped at "+time+". None of them were wind-up."},
+    {name:"covered mirrors",text:"Every mirror in the building is covered with bedsheets. The sheets are new."},
+    {name:"the dog",text:"The dog next door has not barked since that night. The neighbor says that is not like him."},
+    {name:"rain gutter",text:"A child's baby tooth in the rain gutter. Nobody in the building has a child."}
+  ]).slice(0,2);
+  const evidence=shuffle(r,culptPool.concat(herrings,eeries));
+  return {
+    no:no, kind:kind, loc:loc, time:time, victim:vn, culprit:culprit,
+    brief:"CASE #"+no+" \u2014 "+kind.toUpperCase()+" \u2014 "+loc.toUpperCase(),
+    story:pick(r,FIRST)+" "+pick(r,LAST)+" "+KINDS[kind].brief+" at "+loc+". The call came in at "+time+". "+KINDS[kind].tail,
+    mood:pick(r,MOODS),
+    suspects:names.map(function(n,i){return{
+      name:n, role:roles[i], alibi:alibis[i],
+      press:(i===0)?("Press them enough and the story shifts: "+culptPool[0].press):pick(r,INNOCENT_PRESS),
+      guilty:i===0
+    }}),
+    evidence:evidence, closed:culptPool
+  };
+}
+function save(){localStorage.setItem("coldcase-v1",JSON.stringify(meta))}
+function stats(){document.getElementById("fSolved").textContent=meta.solved;document.getElementById("fStreak").textContent=meta.streak;document.getElementById("fMissed").textContent=meta.missed;document.getElementById("caseNo").textContent="case #"+meta.no}
+function newCase(){C=genCase(meta.no);tab="brief";document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.t==="brief")});render();stats()}
+function render(){
+  const m=document.getElementById("main");m.innerHTML="";
+  if(tab==="brief"){
+    m.innerHTML='<div class="casehead">'+C.brief+'</div><div class="brief">'+C.story+' Three names are on the board. Work the scene, press the suspects, and make it stick.</div><div class="mood">'+C.mood+'</div>';
+  }else if(tab==="scene"){
+    m.innerHTML='<div class="casehead">THE SCENE \u2014 '+C.loc.toUpperCase()+'</div>';
+    C.evidence.forEach(function(e){
+      const d=document.createElement("div");d.className="ev";
+      d.innerHTML='<button>'+e.name+'<span class="tag">examine</span></button><div class="body">'+e.text+'</div>';
+      d.querySelector("button").onclick=function(){d.classList.toggle("open");d.querySelector(".tag").textContent=d.classList.contains("open")?"seen":"examine"};
+      m.appendChild(d);
+    });
+  }else if(tab==="suspects"){
+    m.innerHTML='<div class="casehead">SUSPECTS \u2014 '+C.suspects.length+' ON THE BOARD</div>';
+    C.suspects.forEach(function(s){
+      const d=document.createElement("div");d.className="sus";
+      d.innerHTML='<div class="nm">'+s.name+'</div><div class="role">'+s.role+'</div><div class="alibi">'+s.alibi+'</div><button class="press">PRESS HARDER</button><div class="crack">'+s.press+'</div>';
+      d.querySelector(".press").onclick=function(){d.classList.add("open")};
+      m.appendChild(d);
+    });
+  }else if(tab==="accuse"){
+    m.innerHTML='<div class="casehead">MAKE THE ACCUSATION \u2014 ONE FILE, ONE NAME</div>';
+    C.suspects.forEach(function(s){
+      const b=document.createElement("button");b.className="acc";b.textContent="ACCUSE "+s.name.toUpperCase();
+      b.onclick=function(){accuse(s)};m.appendChild(b);
+    });
+  }
+}
+function accuse(s){
+  const ov=document.getElementById("overlay");
+  const t=document.getElementById("ovTitle"), x=document.getElementById("ovTxt"), btn=document.getElementById("ovBtn");
+  if(s.guilty){
+    meta.solved++;meta.streak++;
+    t.textContent="CASE CLOSED";t.style.color="#22c55e";
+    x.textContent=s.name+" did it.\n\n"+C.closed.map(function(e){return e.text}).join("\n\n")+"\n\n"+s.name+" is in a cell tonight. The file gets a green stamp.";
+    btn.textContent="NEXT CASE";
+    btn.onclick=function(){meta.no++;save();ov.style.display="none";newCase()};
+  }else{
+    meta.streak=0;meta.missed++;
+    t.textContent="THE WRONG DOOR";t.style.color="#d64545";
+    x.textContent="You took "+s.name+" in. The real one walked free the same afternoon: "+C.culprit+".\n\n"+C.closed.map(function(e){return e.text}).join("\n\n")+"\n\nThe file goes back on the shelf. It stays cold.";
+    btn.textContent="NEW CASE";
+    btn.onclick=function(){meta.no++;save();ov.style.display="none";newCase()};
+  }
+  save();stats();ov.style.display="block";
+}
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){tab=b.dataset.t;document.querySelectorAll("nav button").forEach(function(x){x.classList.toggle("on",x===b)});render()}});
+newCase();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
